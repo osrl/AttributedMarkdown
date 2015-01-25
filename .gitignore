@@ -6,6 +6,7 @@ markdown.xcodeproj/xcuserdata/*.xcuserdatad/xcschemes/peg-markdown.xcscheme
 markdown.xcodeproj/xcuserdata/*.xcuserdatad/xcschemes/xcschememanagement.plist
 markdown.xcodeproj/xcuserdata/*.xcuserdatad/xcschemes/HelloMarkdown.xcscheme
 markdown.xcodeproj/xcuserdata/*.xcuserdatad/xcschemes/attr-markdown-iOS.xcscheme
+*.xccheckout
 .DS_Store
 *.o
 markdown
