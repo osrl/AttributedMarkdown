@@ -1,19 +1,19 @@
 /**********************************************************************
-
-  markdown_output.c - functions for printing Elements parsed by 
-                      markdown_peg.
-  (c) 2012 Gregory Wieber & Jim Radford
-  (c) 2008 John MacFarlane (jgm at berkeley dot edu).
-
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License or the MIT
-  license.  See LICENSE for details.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
+ 
+ markdown_output.c - functions for printing Elements parsed by
+ markdown_peg.
+ (c) 2012 Gregory Wieber & Jim Radford
+ (c) 2008 John MacFarlane (jgm at berkeley dot edu).
+ 
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License or the MIT
+ license.  See LICENSE for details.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
  ***********************************************************************/
 
 
@@ -24,6 +24,7 @@
 #include <assert.h>
 #import "markdown_peg.h"
 #import "platform.h"
+#import "NSTextAttachment+Image.h"
 
 static int extensions;
 
@@ -31,15 +32,15 @@ static void print_attr_string(NSMutableAttributedString *out, NSString *str, NSD
 static void print_attr_element_list(NSMutableAttributedString *out, element *list, NSDictionary *attributes[], NSDictionary *current);
 static void print_attr_element(NSMutableAttributedString *out, element *elt, NSDictionary *attributes[], NSDictionary *current);
 /**********************************************************************
-
-  Utility functions for printing
-
+ 
+ Utility functions for printing
+ 
  ***********************************************************************/
 
 static int indentation = 0;
 static int padded = 2;      /* Number of newlines after last output.
-                               Starts at 2 so no newlines are needed at start.
-                               */
+                             Starts at 2 so no newlines are needed at start.
+                             */
 
 static NSMutableArray *endnotes = nil; /* List of endnotes to print after main content. */
 static int notenumber = 0;  /* Number of footnote. */
@@ -52,40 +53,40 @@ __unused static void pad(NSMutableString *out, int num) {
 }
 
 /**********************************************************************
-
-  Functions for printing Elements as HTML
-
+ 
+ Functions for printing Elements as HTML
+ 
  ***********************************************************************/
 
-/* print_html_string - print string, escaping for HTML  
+/* print_html_string - print string, escaping for HTML
  * If obfuscate selected, convert characters to hex or decimal entities at random */
 __unused static void print_html_string(NSMutableString *out, NSString *str, bool obfuscate) {
-  NSUInteger i;
-  unichar ch;
-  for (i = 0; i < str.length; ++i) {
-    ch = [str characterAtIndex:i];
+    NSUInteger i;
+    unichar ch;
+    for (i = 0; i < str.length; ++i) {
+        ch = [str characterAtIndex:i];
         switch (ch) {
-        case '&':
-            [out appendString:@"&amp;"];
-            break;
-        case '<':
-            [out appendString:@"&lt;"];
-            break;
-        case '>':
-            [out appendString:@"&gt;"];
-            break;
-        case '"':
-            [out appendString:@"&quot;"];
-            break;
-        default:
-            if (obfuscate) {
-                if (rand() % 2 == 0)
-                    [out appendFormat:@"&#%d;", (int) ch];
+            case '&':
+                [out appendString:@"&amp;"];
+                break;
+            case '<':
+                [out appendString:@"&lt;"];
+                break;
+            case '>':
+                [out appendString:@"&gt;"];
+                break;
+            case '"':
+                [out appendString:@"&quot;"];
+                break;
+            default:
+                if (obfuscate) {
+                    if (rand() % 2 == 0)
+                        [out appendFormat:@"&#%d;", (int) ch];
+                    else
+                        [out appendFormat:@"&#x%x;", (unsigned int) ch];
+                }
                 else
-                    [out appendFormat:@"&#x%x;", (unsigned int) ch];
-            }
-            else
-                [out appendCharacter:ch];
+                    [out appendCharacter:ch];
         }
     }
 }
@@ -108,7 +109,7 @@ static NSMutableDictionary *merge(NSDictionary *into, NSDictionary *with) {
     if (inheritedFont) {
         TARGET_PLATFORM_FONT* elementFont = [with objectForKey:NSFontAttributeName];
         if (elementFont) {
-
+            
             CTFontRef inheritedCTFont =  CTFontCreateWithName((CFStringRef)inheritedFont.fontName, inheritedFont.pointSize, NULL);
             CTFontRef elementCTFont = CTFontCreateWithName((CFStringRef)elementFont.fontName, inheritedFont.pointSize, NULL);
             
@@ -120,15 +121,15 @@ static NSMutableDictionary *merge(NSDictionary *into, NSDictionary *with) {
             // make a new UIFont/NSFont
             NSString *newFontName = [(NSString *)CTFontCopyName(outCTFont, kCTFontPostScriptNameKey) autorelease];
             TARGET_PLATFORM_FONT* newFont = [TARGET_PLATFORM_FONT fontWithName:newFontName size:inheritedFont.pointSize];
-
+            
             if (newFont) {
                 [ret setObject:newFont forKey:NSFontAttributeName];
             }
-
+            
             if (inheritedCTFont) CFRelease(inheritedCTFont);
             if (elementCTFont) CFRelease(elementCTFont);
             if (outCTFont) CFRelease(outCTFont);
-
+            
         } else {
             [ret setObject:inheritedFont forKey:NSFontAttributeName];
         }
@@ -142,13 +143,13 @@ static NSMutableDictionary *merge(NSDictionary *into, NSDictionary *with) {
             newParagraphStyle.headIndent+= elementParagraphStyle.headIndent;
             newParagraphStyle.firstLineHeadIndent+= elementParagraphStyle.firstLineHeadIndent;
             /*if (indentation) {
-                newParagraphStyle.headIndent=indentation * inheritedParagraphStyle.headIndent;
-                newParagraphStyle.firstLineHeadIndent=indentation * inheritedParagraphStyle.firstLineHeadIndent;
-            }*/
+             newParagraphStyle.headIndent=indentation * inheritedParagraphStyle.headIndent;
+             newParagraphStyle.firstLineHeadIndent=indentation * inheritedParagraphStyle.firstLineHeadIndent;
+             }*/
             [ret setObject:newParagraphStyle forKey:NSParagraphStyleAttributeName];
         }
     }
-        
+    
     return ret;
 }
 
@@ -164,11 +165,11 @@ static void print_attr_element_list(NSMutableAttributedString *out, element *lis
 __unused static void add_endnote(element *elt) {
     if (endnotes == nil)
         endnotes = [[NSMutableArray alloc] init];
-   [endnotes insertObject:[NSValue valueWithPointer:(const void*)elt] atIndex:0];
+    [endnotes insertObject:[NSValue valueWithPointer:(const void*)elt] atIndex:0];
 }
 
 static void print_attr_element(NSMutableAttributedString *out, element *elt, NSDictionary *attributes[], NSDictionary *current) {
-
+    
     switch (elt->key) {
         case SPACE:         print_attr_string(out, @" ",current);  break;
         case LINEBREAK:     print_attr_string(out, @"\n",current);  break;
@@ -204,8 +205,12 @@ static void print_attr_element(NSMutableAttributedString *out, element *elt, NSD
                 print_attr_string(out, [NSString stringWithFormat: @" (%@)", elt->contents.link->url], current);
             }
             break;
-        case IMAGE:
-            // NOT CURRENTLY SUPPORTED
+        case IMAGE:;
+            NSTextAttachment *textAttachment = [[NSTextAttachment alloc] init];
+            [textAttachment loadImageWithUrl:elt->contents.link->url];
+            NSAttributedString *attrStringWithImage = [NSAttributedString attributedStringWithAttachment:textAttachment];
+            
+            [out appendAttributedString:attrStringWithImage];
             break;
         case EMPH: case STRONG:
             print_attr_element_list(out, elt->children, attributes, merge(current, attributes[elt->key]));
@@ -275,11 +280,11 @@ static void print_attr_element(NSMutableAttributedString *out, element *elt, NSD
             /* if contents.str == 0, then print note; else ignore, since this
              * is a note block that has been incorporated into the notes list */
             /*if (elt->contents.str == 0) {
-                add_endnote(elt);
-                ++notenumber;
-                [out appendFormat:@"<a class=\"noteref\" id=\"fnref%d\" href=\"#fn%d\" title=\"Jump to note %d\">[%d]</a>",
-                 notenumber, notenumber, notenumber, notenumber];
-            }*/
+             add_endnote(elt);
+             ++notenumber;
+             [out appendFormat:@"<a class=\"noteref\" id=\"fnref%d\" href=\"#fn%d\" title=\"Jump to note %d\">[%d]</a>",
+             notenumber, notenumber, notenumber, notenumber];
+             }*/
             break;
         default:
             fprintf(stderr, "print_html_element encountered unknown element key = %d\n", elt->key);
@@ -288,9 +293,9 @@ static void print_attr_element(NSMutableAttributedString *out, element *elt, NSD
 }
 
 /**********************************************************************
-
-  Parameterized function for printing an Element.
-
+ 
+ Parameterized function for printing an Element.
+ 
  ***********************************************************************/
 
 void print_element_list_attr(NSMutableAttributedString *out, element *elt, int exts,NSDictionary *attributes[], NSDictionary *current) {
@@ -302,8 +307,8 @@ void print_element_list_attr(NSMutableAttributedString *out, element *elt, int e
     padded = 2;  /* set padding to 2, so no extra blank lines at beginning */
     print_attr_element_list(out, elt, attributes, current);
     if (endnotes != nil) {
-       // pad(out, 2);
-       // print_attr_endnotes(out);
+        // pad(out, 2);
+        // print_attr_endnotes(out);
     }
 }
 
