@@ -223,6 +223,7 @@ static void print_attr_element(NSMutableAttributedString *out, element *elt, NSD
             assert(elt->key != RAW);
             break;
         case H1: case H2: case H3: case H4: case H5: case H6:
+            print_attr_string(out, @"\n",current);
             print_attr_element_list(out, elt->children, attributes, merge(current, attributes[elt->key]));
             print_attr_string(out, @"\n",current);
             //print_attr_string(out, @"\n",current);
@@ -242,12 +243,12 @@ static void print_attr_element(NSMutableAttributedString *out, element *elt, NSD
         case BULLETLIST:
             //pad(out, 2);
             padded = 0;
-            print_attr_string(out, @"\n",current);
+            //print_attr_string(out, @"\n",current);
             indentation+=1;
             print_attr_element_list(out, elt->children, attributes, merge(current, attributes[elt->key]));
             //pad(out, 1);
             indentation-=1;
-            print_attr_string(out, @"\n",current);
+            //print_attr_string(out, @"\n",current);
             padded = 0;
             break;
         case ORDEREDLIST:
